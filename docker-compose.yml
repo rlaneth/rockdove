@@ -1,0 +1,5 @@
+services:
+  rockdove:
+    build: .
+    env_file: .env
+    restart: "no"
