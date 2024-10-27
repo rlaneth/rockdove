@@ -117,7 +117,7 @@ def send_to_aprs(
 
         # Send weather object
         weather_object = (
-            f"{CALLSIGN}>RKDV,TCPIP*:"
+            f"{CALLSIGN}>APRKDV,TCPIP*:"
             f";{object_name}*{timestamp}h"
             f"{position}_{weather_packet[weather_packet.find('_')+1:]}\n"
         )
@@ -134,7 +134,7 @@ def send_to_aprs(
             comment = f"{comment} - {DATA_COMMENT}"
 
         position_object = (
-            f"{CALLSIGN}>RKDV,TCPIP*:"
+            f"{CALLSIGN}>APRKDV,TCPIP*:"
             f";{object_name}*{timestamp}h"
             f"{position}^{comment}\n"
         )
