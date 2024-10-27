@@ -13,10 +13,9 @@ PORT = int(os.getenv("APRS_PORT", "14580"))
 API_URL = os.getenv("METAR_API_URL", "")
 
 # Station configuration
-STATION_LAT = os.getenv("STATION_LAT", "-22.910")
-STATION_LON = os.getenv("STATION_LON", "-43.163")
-STATION_ID = os.getenv("STATION_ID", "SBRJ")
+OBJECT_LAT = os.getenv("OBJECT_LAT", "-22.910")
+OBJECT_LON = os.getenv("OBJECT_LON", "-43.163")
+OBJECT_ID = os.getenv("OBJECT_ID", "SBRJ")
 
 # Packet data
-OBJECT_NAME = os.getenv("OBJECT_NAME", "SBRJ-METAR")
 DATA_COMMENT = os.getenv("DATA_COMMENT", "")
