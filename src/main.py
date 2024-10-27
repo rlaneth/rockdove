@@ -114,6 +114,7 @@ def send_to_aprs(
         lat, lon = float(OBJECT_LAT), float(OBJECT_LON)
         position = f"{decimal_to_ddmmss(lat)}/{decimal_to_ddmmss(lon, False)}"
         timestamp = obs.time.strftime("%H%M%S")
+        readable_timestamp = obs.time.strftime("%Y-%m-%d %H:%M:%S UTC")
 
         # Send weather object
         weather_object = (
@@ -126,6 +127,7 @@ def send_to_aprs(
 
         # Send position object
         comment = (
+            f"Obs {readable_timestamp} - "
             f"Vis {weather_data.visibility} Ceu {weather_data.sky} "
             f"- {weather_data.conditions}"
         )
