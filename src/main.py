@@ -126,7 +126,7 @@ def send_to_aprs(
 
         # Send position object
         comment = (
-            f"VIS {weather_data.visibility} CEU {weather_data.sky} "
+            f"Vis {weather_data.visibility} Ceu {weather_data.sky} "
             f"- {weather_data.conditions}"
         )
 
