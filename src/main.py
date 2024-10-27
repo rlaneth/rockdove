@@ -116,17 +116,6 @@ def format_aprs_weather(obs: Optional[Metar.Metar]) -> Optional[str]:
         return None
 
     try:
-        # Log METAR data
-        logger.info("Processing METAR data:")
-        logger.info(f"Temperature: {obs.temp.value()}°C")
-        logger.info(f"Dewpoint: {obs.dewpt.value()}°C")
-        logger.info(f"Pressure: {obs.press.value()} hPa")
-        logger.info(f"Wind: {obs.wind_speed.value()} knots at {obs.wind_dir.value()}°")
-
-        # Format timestamp
-        timestamp = obs.time.strftime("%Y-%m-%d %H:%M:%S UTC")
-        logger.info(f"Observation: {timestamp}%")
-
         # Format position
         lat = float(STATION_LAT)
         lon = float(STATION_LON)
@@ -145,31 +134,18 @@ def format_aprs_weather(obs: Optional[Metar.Metar]) -> Optional[str]:
             else 0
         )
 
-        # Log conversions
-        logger.info(f"Converted values:")
-        logger.info(f"Temperature: {temp_f}°F")
-        logger.info(f"Wind speed: {wind_speed_mph} mph")
-        logger.info(f"Pressure: {pressure/10} hPa")
-        logger.info(f"Humidity: {humidity}%")
-
-        # Get visibility conditions
-        visibility_conditions = get_visibility_conditions()
-        logger.info(f"Visibility: {visibility_conditions}")
-
-        # Get sky conditions
-        sky_conditions = get_sky_conditions()
-        logger.info(f"Sky conditions: {sky_conditions}")
-
-        # Get weather conditions
-        weather_conditions = get_weather_conditions()
-        logger.info(f"Weather conditions: {weather_conditions}")
-
-        # Format weather packet with conditions in comments
+        # Format the weather packet
         weather_data = (
-            f"={position}_{wind_dir:03d}/{wind_speed_mph:03d}"
-            f"g000t{temp_f:03d}r...p...h{humidity:02d}b{pressure:05d} "
-            f"{DATA_COMMENT} OBS {timestamp} - Visib {visibility_conditions} "
-            f"- Céu {sky_conditions} - {weather_conditions}"
+            f"@"  # Use @ for weather reports with timestamp
+            f"{obs.time.strftime('%d%H%M')}z"  # Add zulu timestamp
+            f"{position}"
+            f"_{wind_dir:03d}/{wind_speed_mph:03d}"  # Weather data format
+            f"g..."  # Wind gust
+            f"t{temp_f:03d}"
+            f"r..."  # Rain last hour
+            f"p..."  # Rain last 24 hours
+            f"h{humidity:02d}"
+            f"b{pressure:05d}"
         )
 
         return weather_data
@@ -180,7 +156,7 @@ def format_aprs_weather(obs: Optional[Metar.Metar]) -> Optional[str]:
 
 
 def send_to_aprs(weather_packet: str) -> bool:
-    """Send weather data to APRS-IS"""
+    """Send position and weather data to APRS-IS"""
     if not weather_packet:
         return False
 
@@ -188,11 +164,10 @@ def send_to_aprs(weather_packet: str) -> bool:
     sock.settimeout(10.0)
 
     try:
-        # Connect and authenticate
         sock.connect((SERVER, PORT))
         sock.recv(1024)  # Read banner
 
-        login = f"user {CALLSIGN}-13 pass {PASSWORD} vers Rockdove\n"
+        login = f"user {CALLSIGN} pass {PASSWORD} vers Rockdove 0.1\n"
         sock.send(login.encode())
 
         response = sock.recv(1024).decode().strip()
@@ -200,10 +175,28 @@ def send_to_aprs(weather_packet: str) -> bool:
             logger.error("APRS-IS login failed")
             return False
 
-        # Send weather data
-        packet = f"{CALLSIGN}-13>APRS,TCPIP*:{weather_packet}\n"
-        sock.send(packet.encode())
-        logger.info(f"Sent packet: {packet.strip()}")
+        # Get additional conditions
+        visibility_conditions = get_visibility_conditions()
+        sky_conditions = get_sky_conditions()
+        weather_conditions = get_weather_conditions()
+
+        # Send weather data packet
+        weather_packet = f"{STATION_ID}>RKDV,TCPIP*:{weather_packet}\n"
+        sock.send(weather_packet.encode())
+        logger.info(f"Sent weather packet: {weather_packet.strip()}")
+
+        # Send position packet with airport symbol
+        lat = float(STATION_LAT)
+        lon = float(STATION_LON)
+        position = f"{decimal_to_ddmmss(lat)}/{decimal_to_ddmmss(lon, False)}"
+        ad = (
+            f"Visib {visibility_conditions} Ceu {sky_conditions} "
+            f"- {weather_conditions} - {DATA_COMMENT}"
+        )
+
+        position_packet = f"{STATION_ID}>RKDV,TCPIP*:={position}^{ad}\n"
+        sock.send(position_packet.encode())
+        logger.info(f"Sent position packet: {position_packet.strip()}")
 
         return True
 

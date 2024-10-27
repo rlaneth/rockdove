@@ -18,4 +18,5 @@ STATION_LON = os.getenv("STATION_LON", "-43.163")
 STATION_ID = os.getenv("STATION_ID", "SBRJ")
 
 # Packet data
-DATA_COMMENT = os.getenv("DATA_COMMENT", "SBRJ METAR")
+OBJECT_NAME = os.getenv("OBJECT_NAME", "SBRJ-METAR")
+DATA_COMMENT = os.getenv("DATA_COMMENT", "")
